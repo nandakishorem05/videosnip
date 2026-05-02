@@ -41,15 +41,22 @@ export function UploadPanel() {
       setIsUploading(true);
       setUploadProgress(0);
 
+      // FIX: Use a local variable to track progress to satisfy TypeScript's number requirement
+      let currentProgress = 0;
+
       // Simulate progress while actually uploading
       const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 85) {
-            clearInterval(progressInterval);
-            return prev;
+        if (currentProgress >= 85) {
+          clearInterval(progressInterval);
+        } else {
+          currentProgress += Math.random() * 12;
+          // Cap it at 85 so it doesn't jump past it
+          if (currentProgress > 85) {
+            currentProgress = 85;
           }
-          return prev + Math.random() * 12;
-        });
+          // Now we are passing a strict number instead of a function
+          setUploadProgress(currentProgress);
+        }
       }, 200);
 
       try {
@@ -139,11 +146,10 @@ export function UploadPanel() {
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
-            className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer ${
-              isDragging
+            className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer ${isDragging
                 ? "border-purple-500 bg-purple-500/10 scale-[1.01]"
                 : "border-border hover:border-purple-500/40 hover:bg-purple-500/5"
-            }`}
+              }`}
           >
             <input
               type="file"
