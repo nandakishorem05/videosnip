@@ -223,7 +223,78 @@ function ProcessingSkeleton() {
 }
 
 /* ─── Preview (file uploaded, not processed) ─────── */
-function VideoPreview({ file, options }: { file: File; options: ReturnType<typeof useVideoStore>["options"] }) {
+interface VideoPreviewProps {
+  file: File;
+  options: {
+    convertToVertical: boolean;
+    trimStart: number;
+    trimEnd: number;
+    addCaptions: boolean;
+    extractAudio: boolean;
+    captionText?: string;
+  };
+}
+
+function VideoPreview({ file, options }: VideoPreviewProps) {
+  const videoUrl = URL.createObjectURL(file);
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="flex flex-col gap-4 h-full"
+    >
+      <div className="relative aspect-video glass-card rounded-2xl overflow-hidden border border-white/5">
+        <video
+          src={videoUrl}
+          className="w-full h-full object-cover opacity-60"
+          muted
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-full gradient-button flex items-center justify-center shadow-xl shadow-purple-500/40">
+            <Play className="w-7 h-7 text-white ml-1" />
+          </div>
+        </div>
+        <div className="absolute bottom-3 left-3 right-3">
+          <p className="text-xs font-medium text-white/80 truncate glass-card rounded-lg px-3 py-1.5">
+            {file.name}
+          </p>
+        </div>
+      </div>
+
+      <div className="glass-card rounded-xl p-4 border border-white/5">
+        <p className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
+          Active Options
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { label: "Vertical (9:16)", active: options.convertToVertical },
+            { label: "Add Captions", active: options.addCaptions },
+            { label: "Extract Audio", active: options.extractAudio },
+            {
+              label: `Trim: ${options.trimStart}–${options.trimEnd}%`,
+              active: options.trimStart > 0 || options.trimEnd < 100,
+            },
+          ].map(({ label, active }) => (
+            <div key={label} className="flex items-center gap-2">
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  active ? "bg-green-400" : "bg-muted-foreground/30"
+                }`}
+              />
+              <span
+                className={`text-xs ${
+                  active ? "text-foreground" : "text-muted-foreground/50"
+                }`}
+              >
+                {label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
   const videoUrl = URL.createObjectURL(file);
   return (
     <motion.div
