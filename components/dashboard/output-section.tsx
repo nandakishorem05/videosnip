@@ -17,6 +17,20 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import type { VideoClip, ClipType } from "@/lib/store";
 
+/* ─── Types ──────────────────────────────────────── */
+interface VideoPreviewProps {
+  file: File;
+  options: {
+    convertToVertical: boolean;
+    trimStart: number;
+    trimEnd: number;
+    addCaptions: boolean;
+    extractAudio: boolean;
+    captionText?: string;
+  };
+}
+
+/* ─── Clip type config ───────────────────────────── */
 const typeConfig: Record<
   ClipType,
   { icon: React.ElementType; gradient: string; label: string; platform: string }
@@ -47,6 +61,7 @@ const typeConfig: Record<
   },
 };
 
+/* ─── Clip Card ──────────────────────────────────── */
 interface ClipCardProps {
   clip: VideoClip;
   index: number;
@@ -57,7 +72,6 @@ function ClipCard({ clip, index }: ClipCardProps) {
   const Icon = config.icon;
 
   const handleDownload = () => {
-    // In production: trigger actual download from signed URL
     if (clip.url) {
       const a = document.createElement("a");
       a.href = clip.url;
@@ -95,15 +109,11 @@ function ClipCard({ clip, index }: ClipCardProps) {
       className="group relative clip-card glass-card rounded-2xl overflow-hidden"
       style={{ aspectRatio: clip.type === "audio" ? "1/1" : "9/16" }}
     >
-      {/* Gradient background */}
       <div
         className={`absolute inset-0 bg-gradient-to-br ${config.gradient} opacity-20`}
       />
-
-      {/* Subtle grid */}
       <div className="absolute inset-0 dot-grid opacity-20" />
 
-      {/* Content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center p-4 z-10">
         <motion.div
           whileHover={{ scale: 1.1 }}
@@ -115,7 +125,9 @@ function ClipCard({ clip, index }: ClipCardProps) {
           {clip.name}
         </p>
         <p className="text-[10px] text-muted-foreground mt-1">{clip.duration}</p>
-        <div className={`mt-2.5 text-[10px] font-semibold px-2.5 py-1 rounded-full bg-gradient-to-r ${config.gradient} text-white shadow-sm`}>
+        <div
+          className={`mt-2.5 text-[10px] font-semibold px-2.5 py-1 rounded-full bg-gradient-to-r ${config.gradient} text-white shadow-sm`}
+        >
           {config.platform}
         </div>
         {clip.size && (
@@ -123,7 +135,6 @@ function ClipCard({ clip, index }: ClipCardProps) {
         )}
       </div>
 
-      {/* Play indicator */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 0.4, scale: 1 }}
@@ -132,7 +143,6 @@ function ClipCard({ clip, index }: ClipCardProps) {
         <Play className="w-3 h-3 text-white ml-0.5" />
       </motion.div>
 
-      {/* Hover actions overlay */}
       <div className="absolute inset-0 bg-background/85 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-200 flex flex-col items-center justify-center gap-3 z-20">
         <motion.div
           initial={{ y: 8, opacity: 0 }}
@@ -185,14 +195,9 @@ function EmptyState() {
         <span className="text-purple-400 font-medium">Generate Clips</span> to
         create your short-form content.
       </p>
-
-      {/* Placeholder grid */}
       <div className="grid grid-cols-3 gap-3 mt-8 w-full max-w-xs opacity-30">
         {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className="aspect-[9/16] rounded-xl skeleton"
-          />
+          <div key={i} className="aspect-[9/16] rounded-xl skeleton" />
         ))}
       </div>
     </motion.div>
@@ -222,19 +227,7 @@ function ProcessingSkeleton() {
   );
 }
 
-/* ─── Preview (file uploaded, not processed) ─────── */
-interface VideoPreviewProps {
-  file: File;
-  options: {
-    convertToVertical: boolean;
-    trimStart: number;
-    trimEnd: number;
-    addCaptions: boolean;
-    extractAudio: boolean;
-    captionText?: string;
-  };
-}
-
+/* ─── Video Preview ──────────────────────────────── */
 function VideoPreview({ file, options }: VideoPreviewProps) {
   const videoUrl = URL.createObjectURL(file);
   return (
@@ -277,72 +270,12 @@ function VideoPreview({ file, options }: VideoPreviewProps) {
           ].map(({ label, active }) => (
             <div key={label} className="flex items-center gap-2">
               <div
-                className={`w-2 h-2 rounded-full ${
-                  active ? "bg-green-400" : "bg-muted-foreground/30"
-                }`}
+                className={`w-2 h-2 rounded-full ${active ? "bg-green-400" : "bg-muted-foreground/30"
+                  }`}
               />
               <span
-                className={`text-xs ${
-                  active ? "text-foreground" : "text-muted-foreground/50"
-                }`}
-              >
-                {label}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-  const videoUrl = URL.createObjectURL(file);
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.96 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col gap-4 h-full"
-    >
-      {/* Video preview */}
-      <div className="relative aspect-video glass-card rounded-2xl overflow-hidden border border-white/5">
-        <video
-          src={videoUrl}
-          className="w-full h-full object-cover opacity-60"
-          muted
-          onLoadedMetadata={(e) => URL.revokeObjectURL(videoUrl)}
-        />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-16 h-16 rounded-full gradient-button flex items-center justify-center shadow-xl shadow-purple-500/40">
-            <Play className="w-7 h-7 text-white ml-1" />
-          </div>
-        </div>
-        <div className="absolute bottom-3 left-3 right-3">
-          <p className="text-xs font-medium text-white/80 truncate glass-card rounded-lg px-3 py-1.5">
-            {file.name}
-          </p>
-        </div>
-      </div>
-
-      {/* Settings summary */}
-      <div className="glass-card rounded-xl p-4 border border-white/5">
-        <p className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
-          Active Options
-        </p>
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            { label: "Vertical (9:16)", active: options.convertToVertical },
-            { label: "Add Captions", active: options.addCaptions },
-            { label: "Extract Audio", active: options.extractAudio },
-            {
-              label: `Trim: ${options.trimStart}–${options.trimEnd}%`,
-              active: options.trimStart > 0 || options.trimEnd < 100,
-            },
-          ].map(({ label, active }) => (
-            <div key={label} className="flex items-center gap-2">
-              <div
-                className={`w-2 h-2 rounded-full ${active ? "bg-green-400" : "bg-muted-foreground/30"}`}
-              />
-              <span
-                className={`text-xs ${active ? "text-foreground" : "text-muted-foreground/50"}`}
+                className={`text-xs ${active ? "text-foreground" : "text-muted-foreground/50"
+                  }`}
               >
                 {label}
               </span>
@@ -354,7 +287,7 @@ function VideoPreview({ file, options }: VideoPreviewProps) {
   );
 }
 
-/* ─── Main Component ─────────────────────────────── */
+/* ─── Main Output Section ────────────────────────── */
 export function OutputSection() {
   const { generatedClips, isProcessing, uploadedFile, options } = useVideoStore();
 
@@ -374,9 +307,17 @@ export function OutputSection() {
     });
   };
 
+  const previewOptions = {
+    convertToVertical: options.convertToVertical,
+    trimStart: options.trimStart,
+    trimEnd: options.trimEnd,
+    addCaptions: options.addCaptions,
+    extractAudio: options.extractAudio,
+    captionText: options.captionText,
+  };
+
   return (
     <div className="h-full flex flex-col gap-4">
-      {/* Header */}
       <div className="flex items-center justify-between shrink-0">
         <h2 className="text-base font-semibold flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-purple-500/15 flex items-center justify-center">
@@ -389,10 +330,10 @@ export function OutputSection() {
           {isProcessing
             ? "Processing..."
             : generatedClips.length > 0
-            ? `Generated Clips (${generatedClips.length})`
-            : uploadedFile
-            ? "Video Preview"
-            : "Preview & Output"}
+              ? `Generated Clips (${generatedClips.length})`
+              : uploadedFile
+                ? "Video Preview"
+                : "Preview & Output"}
         </h2>
 
         {generatedClips.length > 0 && (
@@ -408,7 +349,6 @@ export function OutputSection() {
         )}
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto">
         <AnimatePresence mode="wait">
           {!uploadedFile && generatedClips.length === 0 && !isProcessing ? (
@@ -434,7 +374,7 @@ export function OutputSection() {
               </AnimatePresence>
             </motion.div>
           ) : uploadedFile ? (
-            <VideoPreview key="preview" file={uploadedFile} options={options} />
+            <VideoPreview key="preview" file={uploadedFile} options={previewOptions} />
           ) : null}
         </AnimatePresence>
       </div>
